@@ -78,7 +78,7 @@ try:
             res = r.get(enlace)
             res.raise_for_status()
             print("Se accedió a la lección")
-            pag = bs4.BeautifulSoup(res.text)
+            pag = bs4.BeautifulSoup(res.text, features="html.parser")
             exito = True
         except Exception as e:
             print("Surgió un error durante el procesamiento de la lección" + les.text)
@@ -89,39 +89,54 @@ try:
             path_aux = les.text[0] + '/' + les.text[1]
             os.makedirs(path_aux, exist_ok=True)
             try:
-                sections = pag.select('div > div')
+                sections = pag.select('div > div')[0]
+                # print(sections[0].prettify())
                 for s in sections.contents:
-                    data_sec = {}
-                    primeraDef = True
-                    # Análisis de cada párrafo de cada lección
-                    for p in s.find_all('p'):
-                        data_p = {}
-                        try:
-                            # Clasificación por casos
-                            clase = p['class']
-                            if clase == 'Definition':
-                                if primeraDef:
-                                    idx = p.text[0:4]
-                                    txt = p.text[6:]
-                                    data_p['idx'] = idx
-                                    data_p['def'] = [txt]
-                                    primeraDef = False
-                                else:
-                                    data_p['def'].append(p.text)
-                            elif clase == 'Image' or clase == 'Gloss':
-                                tag_img = p.img['src']
-                                # TODO: Guardado de imágenes 
-                                img = open(path_aux + '/img/' + data_sec['idx'] + ".png")
-                            elif clase == 'Caption':
-                                # TODO: Guardado de ejemplos
-                                a = 0
-                        except Exception as e:
-                            print("Error al procesar los contenidos de la lección")
-                            print(e)
+                    print(type(s))
+                    # data_sec = {}
+                    # primeraDef = True
+                    # primeraCap = True
+                    # # Análisis de cada párrafo de cada lección
+                    # for p in s.find_all('p'):
+                    #     data_p = {}
+                    #     try:
+                    #         # Clasificación por casos
+                    #         clase = p['class']
+                    #         if clase == 'Definition':
+                    #             if primeraDef:
+                    #                 idx = p.text[0:4]
+                    #                 txt = p.text[6:]
+                    #                 data_p['idx'] = idx
+                    #                 data_p['def'] = [txt]
+                    #                 primeraDef = False
+                    #             else:
+                    #                 data_p['def'].append(p.text)
+                    #         elif clase == 'Image' or clase == 'Gloss':
+                    #             tag_img = p.img['src']
+                    #             try:
+                    #                 res = r.get(path + '/' + tag_img)
+                    #                 res.raise_for_status()
+                    #                 img = open(path_aux + '/img/' + data_sec['idx'] + ".png", 'wb')
+                    #                 for chunk in res.iter_content(100000):
+                    #                     img.write(chunk)
+                    #                 img.close()
+                    #             except Exception as e:
+                    #                 print("Error al momento de descargar la imagen")
+                    #                 print(e)
+                    #         elif clase == 'Caption':
+                    #             txt = p.text
+                    #             if primeraCap:
+                    #                 data_p['cap'] = [txt]
+                    #                 primeraDef = False
+                    #             else:
+                    #                 data_p['cap'].append(txt)
+                    #     except Exception as e:
+                    #         print("Error al procesar los contenidos de la lección")
+                    #         print(e)
             except Exception as e:
                 print("No se ha podido acceder a los contenidos de la lección", les.text)
                 print(e)
-        break
+        break # Eliminar una vez comprobado que esto funciona
 except Exception as e:
     print("No se ha podido acceder a alguna lección")
     print(e)
