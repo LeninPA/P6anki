@@ -86,53 +86,70 @@ try:
         if(exito):
             # Acceso exitoso
             # Análisis de secciones
-            path_aux = les.text[0] + '/' + les.text[1]
+            caracteres = []
+            for char in les.text:
+                if char.isalnum():
+                    caracteres.append(char)
+                    if len(caracteres) == 2:
+                        break
+            path_aux = caracteres[0] + '/' + caracteres[1]
+            print(path_aux)
             os.makedirs(path_aux, exist_ok=True)
             try:
-                sections = pag.select('div > div')[0]
+                sections = pag.select('div > div')
+                #print(sections)
                 # print(sections[0].prettify())
-                for s in sections.contents:
-                    print(type(s))
-                    # data_sec = {}
-                    # primeraDef = True
-                    # primeraCap = True
-                    # # Análisis de cada párrafo de cada lección
-                    # for p in s.find_all('p'):
-                    #     data_p = {}
-                    #     try:
-                    #         # Clasificación por casos
-                    #         clase = p['class']
-                    #         if clase == 'Definition':
-                    #             if primeraDef:
-                    #                 idx = p.text[0:4]
-                    #                 txt = p.text[6:]
-                    #                 data_p['idx'] = idx
-                    #                 data_p['def'] = [txt]
-                    #                 primeraDef = False
-                    #             else:
-                    #                 data_p['def'].append(p.text)
-                    #         elif clase == 'Image' or clase == 'Gloss':
-                    #             tag_img = p.img['src']
-                    #             try:
-                    #                 res = r.get(path + '/' + tag_img)
-                    #                 res.raise_for_status()
-                    #                 img = open(path_aux + '/img/' + data_sec['idx'] + ".png", 'wb')
-                    #                 for chunk in res.iter_content(100000):
-                    #                     img.write(chunk)
-                    #                 img.close()
-                    #             except Exception as e:
-                    #                 print("Error al momento de descargar la imagen")
-                    #                 print(e)
-                    #         elif clase == 'Caption':
-                    #             txt = p.text
-                    #             if primeraCap:
-                    #                 data_p['cap'] = [txt]
-                    #                 primeraDef = False
-                    #             else:
-                    #                 data_p['cap'].append(txt)
-                    #     except Exception as e:
-                    #         print("Error al procesar los contenidos de la lección")
-                    #         print(e)
+                # TODO: Encontrar qué métodos se pueden usar en NavigableString o alternativas a select
+                for s in sections:
+                    print("Estoy en una sección perros")
+                    # if s == '\n':
+                    #     continue
+                    # print(s.contents)
+                    data_sec = {}
+                    primeraDef = True
+                    primeraCap = True
+                    # Análisis de cada párrafo de cada lección
+                    for p in s.children:
+                        if p == '\n':
+                            continue
+                        print("Hijo 1:", end="\n    ")
+                        print(p)
+                        # data_p = {}
+                        # try:
+                        #     # Clasificación por casos
+                        #     clase = p['class']
+                        #     if clase == 'Definition':
+                        #         if primeraDef:
+                        #             idx = p.text[0:4]
+                        #             txt = p.text[6:]
+                        #             data_p['idx'] = idx
+                        #             data_p['def'] = [txt]
+                        #             primeraDef = False
+                        #         else:
+                        #             data_p['def'].append(p.text)
+                        #     elif clase == 'Image' or clase == 'Gloss':
+                        #         tag_img = p.img['src']
+                        #         try:
+                        #             res = r.get(path + '/' + tag_img)
+                        #             res.raise_for_status()
+                        #             img = open(path_aux + '/img/' + data_sec['idx'] + ".png", 'wb')
+                        #             for chunk in res.iter_content(100000):
+                        #                 img.write(chunk)
+                        #             img.close()
+                        #         except Exception as e:
+                        #             print("Error al momento de descargar la imagen")
+                        #             print(e)
+                        #     elif clase == 'Caption':
+                        #         txt = p.text
+                        #         if primeraCap:
+                        #             data_p['cap'] = [txt]
+                        #             primeraDef = False
+                        #         else:
+                        #             data_p['cap'].append(txt)
+                        # except Exception as e:
+                        #     print("Error al procesar los contenidos de la lección")
+                        #     print(e)
+                    break
             except Exception as e:
                 print("No se ha podido acceder a los contenidos de la lección", les.text)
                 print(e)
