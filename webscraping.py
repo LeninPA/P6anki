@@ -109,46 +109,66 @@ try:
                     primeraDef = True
                     primeraCap = True
                     # Análisis de cada párrafo de cada lección
-                    for p in s.children:
+                    for p in s.contents:
+                        # TODO: Almacenar contenidos obtenidos en alguna parte xd
                         if p == '\n':
                             continue
                         print("Hijo 1:", end="\n    ")
-                        print(p)
-                        # data_p = {}
-                        # try:
-                        #     # Clasificación por casos
-                        #     clase = p['class']
-                        #     if clase == 'Definition':
-                        #         if primeraDef:
-                        #             idx = p.text[0:4]
-                        #             txt = p.text[6:]
-                        #             data_p['idx'] = idx
-                        #             data_p['def'] = [txt]
-                        #             primeraDef = False
-                        #         else:
-                        #             data_p['def'].append(p.text)
-                        #     elif clase == 'Image' or clase == 'Gloss':
-                        #         tag_img = p.img['src']
-                        #         try:
-                        #             res = r.get(path + '/' + tag_img)
-                        #             res.raise_for_status()
-                        #             img = open(path_aux + '/img/' + data_sec['idx'] + ".png", 'wb')
-                        #             for chunk in res.iter_content(100000):
-                        #                 img.write(chunk)
-                        #             img.close()
-                        #         except Exception as e:
-                        #             print("Error al momento de descargar la imagen")
-                        #             print(e)
-                        #     elif clase == 'Caption':
-                        #         txt = p.text
-                        #         if primeraCap:
-                        #             data_p['cap'] = [txt]
-                        #             primeraDef = False
-                        #         else:
-                        #             data_p['cap'].append(txt)
-                        # except Exception as e:
-                        #     print("Error al procesar los contenidos de la lección")
-                        #     print(e)
+                        print(p.attrs)
+                        print(type(p),"\n")
+                        data_p = {}
+                        try:
+                            # Clasificación por casos
+                            clase = p['class'][0]
+                            # print(clase)
+                            if clase == 'Definition':
+                                print('Estoy en un párrafo', 'Definition')
+                                if primeraDef:
+                                    idx = p.text[0:4]
+                                    txt = p.text[6:]
+                                    data_p['idx'] = idx
+                                    data_p['def'] = [txt]
+                                    primeraDef = False
+                                else:
+                                    data_p['def'].append(p.text)
+                            elif clase == 'Image' or clase == 'Gloss':
+                                # TODO: Corregir guardado de imágenes
+                                print('Estoy en un párrafo', clase)
+                                tag_img = p.img['src'].lstrip('/')
+                                print("""
+                                --------------------------------\n
+                                IMAGEN
+                                --------------------------------\n
+                                """
+                                )
+                                print("tag_img:", tag_img)
+                                try:
+                                    print(path + tag_img)
+                                    res = r.get(path + tag_img)
+                                    res.raise_for_status()
+                                    # TODO: Guardar datos en data_sec para poder guardar la imagen
+                                    # img = open(path_aux + '/img/' + data_sec['idx'] + ".png", 'wb')
+                                    # for chunk in res.iter_content(100000):
+                                    #     print("programa vivo")
+                                    #     img.write(chunk)
+                                    # img.close()
+                                except Exception as e:
+                                    print("Error al momento de descargar la imagen")
+                                    print(type(e))
+                                    print(e)
+                            elif clase == 'Caption':
+                                print('Estoy en un párrafo', 'Caption')
+                                txt = p.text
+                                if primeraCap:
+                                    data_p['cap'] = [txt]
+                                    primeraDef = False
+                                else:
+                                    data_p['cap'].append(txt)
+                            print("Datos",data_p)
+                        except Exception as e:
+                            print("Error al procesar los contenidos de la lección")
+                            print(e)
+                    print("Datos sección", data_p)
                     break
             except Exception as e:
                 print("No se ha podido acceder a los contenidos de la lección", les.text)
