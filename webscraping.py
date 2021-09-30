@@ -110,7 +110,7 @@ try:
                     primeraCap = True
                     # Análisis de cada párrafo de cada lección
                     for p in s.contents:
-                        # TODO: Almacenar contenidos obtenidos en alguna parte xd
+                        # TODO: Almacenar contenidos obtenidos en alguna parte del código
                         if p == '\n':
                             continue
                         print("Hijo 1:", end="\n    ")
