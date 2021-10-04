@@ -77,7 +77,7 @@ try:
             # Acceso a la lección individual
             res = r.get(enlace)
             res.raise_for_status()
-            print("Se accedió a la lección")
+            print("Se accedió a la lección", end=" ")
             pag = bs4.BeautifulSoup(res.text, features="html.parser")
             exito = True
         except Exception as e:
@@ -93,38 +93,41 @@ try:
                     if len(caracteres) == 2:
                         break
             path_aux = caracteres[0] + '/' + caracteres[1]
-            print(path_aux)
+            les_numero = caracteres[0] + caracteres[1]
+            print(les_numero)
             os.makedirs(path_aux, exist_ok=True)
+            print("| Se creó el directorio de la lección " + les_numero)
             try:
                 sections = pag.select('div > div')
                 #print(sections)
                 # print(sections[0].prettify())
-                # TODO: Encontrar qué métodos se pueden usar en NavigableString o alternativas a select
+                data_sec = {}
                 for s in sections:
-                    print("Estoy en una sección perros")
+                    if s['id'] == 'Quiz':
+                       continue
+                    print("| Estoy en una nueva sección")
                     # if s == '\n':
                     #     continue
                     # print(s.contents)
-                    data_sec = {}
                     primeraDef = True
                     primeraCap = True
                     # Análisis de cada párrafo de cada lección
                     # Los datos se almacenan en este índice temporalmente
                     idx_tmp = {}
                     for p in s.contents:
-                        # TODO: Almacenar contenidos obtenidos en alguna parte del código
                         if p == '\n':
                             continue
-                        print("Hijo 1:", end="\n    ")
-                        print(p.attrs)
-                        print(type(p),"\n")
+                        print("| | Estoy en un nuevo párrafo con clase", end=" ")
+                        #print(p.attrs)
+                        #print("Hijo 1:", end="\n    ")
+                        #print(type(p),"\n")
                         data_p = {}
                         try:
                             # Clasificación por casos
                             clase = p['class'][0]
+                            print(clase)
                             # print(clase)
                             if clase == 'Definition':
-                                print('Estoy en un párrafo', 'Definition')
                                 if primeraDef:
                                     idx = p.text[0:4]
                                     txt = p.text[6:]
@@ -137,32 +140,28 @@ try:
                                     data_p['def'].append(p.text)
                                     data_sec[idx_tmp]['def'].append(p.text)
                             elif clase == 'Image' or clase == 'Gloss':
-                                # TODO: Corregir guardado de imágenes
-                                print('Estoy en un párrafo', clase)
                                 tag_img = p.img['src'].lstrip('/')
-                                print("""
-                                --------------------------------\n
-                                IMAGEN
-                                --------------------------------\n
-                                """
-                                )
-                                print("tag_img:", tag_img)
+                                print(
+                                    "| | | La imagen tiene una ruta relativa de: ", tag_img)
                                 try:
-                                    print(path + tag_img)
+                                    print(
+                                        "| | | La imagen tiene una ruta absoluta de: ", path + tag_img)
                                     res = r.get(path + tag_img)
                                     res.raise_for_status()
-                                    # TODO: Guardar datos en data_sec para poder guardar la imagen
-                                    img = open(path_aux + '/' + idx_tmp + ".png", 'wb')
+                                    print("| | | La imagen se va a guardar en:",
+                                          path_aux + '/' + idx_tmp + "_" + clase + ".png")
+                                    img = open(path_aux + '/' + idx_tmp + "_" + clase + ".png", 'wb')
                                     for chunk in res.iter_content(100000):
-                                        print("programa vivo")
+                                        print("| | | | Guardado en proceso")
                                         img.write(chunk)
                                     img.close()
+                                    print("| | | | Guardado completo")
                                 except Exception as e:
-                                    print("Error al momento de descargar la imagen")
+                                    print(
+                                        "| | | | Error al momento de descargar la imagen")
                                     print(type(e))
                                     print(e)
                             elif clase == 'Caption':
-                                print('Estoy en un párrafo', 'Caption')
                                 txt = p.text
                                 if primeraCap:
                                     data_p['cap'] = [txt]
@@ -171,14 +170,14 @@ try:
                                 else:
                                     data_p['cap'].append(txt)
                                     data_sec[idx_tmp]['cap'].append(txt)
-                            print("Datos",data_p)
                         except Exception as e:
                             print("Error al procesar los contenidos de la lección")
                             print(e)
-                    print("Datos sección", data_p)
-                    break
+                    print("| | Datos obtenidos:\n| | ", data_sec)
+                    t.sleep(2)
+                    # break
             except Exception as e:
-                print("No se ha podido acceder a los contenidos de la lección", les.text)
+                print("| No se ha podido acceder a los contenidos de la lección", les.text)
                 print(e)
         break # Eliminar una vez comprobado que esto funciona
 except Exception as e:
