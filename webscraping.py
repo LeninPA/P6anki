@@ -61,14 +61,14 @@ def create_connection(host_name, user_name, user_password, db_name):
             passwd=user_password,
             database=db_name
         )
-        print("Conexión exitosa a al servidor")
+        print("Conexión exitosa al servidor")
     except Error as e:
         print(f"The error '{e}' occurred")
 
     return connection
 connection = create_connection("127.0.0.1", "root", "root", "p6anki")
 
-def query_execute(conn, query):
+def query_execute(connection, query):
     cursor = connection.cursor()
     try:
         cursor.execute(query)
@@ -77,7 +77,7 @@ def query_execute(conn, query):
     except Error as e:
         return e
 
-def query_read(conn,query):
+def query_read(connection,query):
     cursor = connection.cursor()
     result = None
     try:
@@ -155,17 +155,20 @@ try:
         if(exito):
             # Acceso exitoso
             # Análisis de secciones
-            caracteres = []
-            for char in les.text:
+            caracteres = ["",""]
+            # TODO: Cambiar esto para que funcione con el id de los hipervínculos
+            for char in les['id']:
                 if char.isalnum():
-                    caracteres.append(char)
-                    if len(caracteres) == 2:
-                        break
+                    if char.isdigit():
+                        caracteres[0] += char
+                    else:
+                        caracteres[1] += char
             path_aux = caracteres[0] + '/' + caracteres[1]
             les_numero = caracteres[0] + caracteres[1]
             print(les_numero)
             os.makedirs(path_aux, exist_ok=True)
             print("| Se creó el directorio de la lección " + les_numero)
+            les_query = "INSERT INTO lec_lecciones VALUES ()"
             try:
                 sections = pag.select('div > div')
                 #print(sections)
