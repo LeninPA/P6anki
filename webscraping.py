@@ -109,6 +109,8 @@ try:
                     primeraDef = True
                     primeraCap = True
                     # Análisis de cada párrafo de cada lección
+                    # Los datos se almacenan en este índice temporalmente
+                    idx_tmp = {}
                     for p in s.contents:
                         # TODO: Almacenar contenidos obtenidos en alguna parte del código
                         if p == '\n':
@@ -127,10 +129,13 @@ try:
                                     idx = p.text[0:4]
                                     txt = p.text[6:]
                                     data_p['idx'] = idx
+                                    idx_tmp = idx
                                     data_p['def'] = [txt]
+                                    data_sec[idx] = {'def': [txt]}
                                     primeraDef = False
                                 else:
                                     data_p['def'].append(p.text)
+                                    data_sec[idx_tmp]['def'].append(p.text)
                             elif clase == 'Image' or clase == 'Gloss':
                                 # TODO: Corregir guardado de imágenes
                                 print('Estoy en un párrafo', clase)
@@ -147,11 +152,11 @@ try:
                                     res = r.get(path + tag_img)
                                     res.raise_for_status()
                                     # TODO: Guardar datos en data_sec para poder guardar la imagen
-                                    # img = open(path_aux + '/img/' + data_sec['idx'] + ".png", 'wb')
-                                    # for chunk in res.iter_content(100000):
-                                    #     print("programa vivo")
-                                    #     img.write(chunk)
-                                    # img.close()
+                                    img = open(path_aux + '/' + idx_tmp + ".png", 'wb')
+                                    for chunk in res.iter_content(100000):
+                                        print("programa vivo")
+                                        img.write(chunk)
+                                    img.close()
                                 except Exception as e:
                                     print("Error al momento de descargar la imagen")
                                     print(type(e))
@@ -161,9 +166,11 @@ try:
                                 txt = p.text
                                 if primeraCap:
                                     data_p['cap'] = [txt]
+                                    data_sec[idx_tmp]['cap'] = [txt]
                                     primeraDef = False
                                 else:
                                     data_p['cap'].append(txt)
+                                    data_sec[idx_tmp]['cap'].append(txt)
                             print("Datos",data_p)
                         except Exception as e:
                             print("Error al procesar los contenidos de la lección")
