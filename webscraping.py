@@ -87,6 +87,10 @@ def query_read(connection,query):
     except Error as e:
         return e
 
+def dd(var):
+    print(var)
+    exit()
+
 # Conexión a la base de datos
 
 """
@@ -168,7 +172,13 @@ try:
             print(les_numero)
             os.makedirs(path_aux, exist_ok=True)
             print("| Se creó el directorio de la lección " + les_numero)
-            les_query = "INSERT INTO lec_lecciones VALUES ()"
+            les_query = "INSERT IGNORE INTO lec_lecciones VALUES ('" + les_numero + "'," + caracteres[0] + ")"
+            db_res = query_execute(connection, les_query)
+            if(db_res == True):
+                print("| Se creó el registro en la base de datos para la lección " + les_numero)
+            else:
+                print("| No se pudo crear el registro para " + les_numero + "intentando con la siguiente lección")
+                continue
             try:
                 sections = pag.select('div > div')
                 #print(sections)
@@ -186,6 +196,8 @@ try:
                     # Análisis de cada párrafo de cada lección
                     # Los datos se almacenan en este índice temporalmente
                     idx_tmp = {}
+                    orden_pal = 1
+                    orden_cap = 1
                     for p in s.contents:
                         if p == '\n':
                             continue
@@ -201,16 +213,46 @@ try:
                             # print(clase)
                             if clase == 'Definition':
                                 if primeraDef:
+                                    # Obtiene el índice de la palabra
                                     idx = p.text[0:4]
                                     txt = p.text[6:]
+                                    # Guardado de datos
                                     data_p['idx'] = idx
                                     idx_tmp = idx
-                                    data_p['def'] = [txt]
                                     data_sec[idx] = {'def': [txt]}
+                                    data_p['def'] = [txt]
+                                    # Guardado en la base de datos
+                                    pos = txt.find(',')
+                                    if(pos > 0):
+                                        palabra = txt[0:pos]
+                                    else:
+                                        palabra = txt
+                                    print("| | | Guardando " + palabra +
+                                          " con identificador " + idx_tmp + " en la BD")
+                                    query_idx = "INSERT IGNORE INTO pal_palabra VALUES ('" + \
+                                        idx_tmp + "', '" + palabra + "', '" + les_numero + "')"
+                                    res = query_execute(connection, query_idx)
+                                    if(res == True):
+                                        print("| | | Se ha guardado "  + palabra + " en la BD con éxito")
+                                    else:
+                                        print("| | | Error al guardar " + palabra + " en la BD, cancelando iteración")
+                                        break
                                     primeraDef = False
+                                    # Contenido de query
+                                    contenido = txt
                                 else:
                                     data_p['def'].append(p.text)
                                     data_sec[idx_tmp]['def'].append(p.text)
+                                    contenido = p.text
+                                print("| | | Guardando nueva definición con orden " + str(orden_pal) + " en la BD")
+                                query_def = "INSERT IGNORE INTO def_definicion(pal_id,def_contenido,def_orden) VALUES ('" + idx_tmp + "', '" + contenido + "', " + str(orden_pal)+ ")"
+                                res = query_execute(connection, query_def)
+                                if(res == True):
+                                    print("| | | Se ha guardado la definición en la BD con éxito")
+                                else:
+                                    print(
+                                        "| | | Error guardando la definición en la BD")
+                                orden_pal += 1
                             elif clase == 'Image' or clase == 'Gloss':
                                 tag_img = p.img['src'].lstrip('/')
                                 print(
@@ -242,16 +284,30 @@ try:
                                 else:
                                     data_p['cap'].append(txt)
                                     data_sec[idx_tmp]['cap'].append(txt)
+                                print("| | | Guardando nueva leyenda con orden " + str(orden_cap) + " en la BD")
+                                query_def = "INSERT IGNORE INTO cap_caption(pal_id,cap_contenido,cap_orden) VALUES ('" + \
+                                    idx_tmp + "', '" + contenido + \
+                                    "', " + str(orden_cap) + ")"
+                                res = query_execute(connection, query_def)
+                                if(res == True):
+                                    print(
+                                        "| | | Se ha guardado la leyenda en la BD con éxito")
+                                else:
+                                    print(
+                                        "| | | Error guardando la leyenda en la BD")
+                                orden_cap += 1
+
                         except Exception as e:
                             print("Error al procesar los contenidos de la lección")
                             print(e)
                     print("| | Datos obtenidos:\n| | ", data_sec)
-                    t.sleep(2)
+                    # t.sleep(2)
                     # break
             except Exception as e:
                 print("| No se ha podido acceder a los contenidos de la lección", les.text)
                 print(e)
-        break # Eliminar una vez comprobado que esto funciona
+        t.sleep(3)
+        # break # Eliminar una vez comprobado que esto funciona
 except Exception as e:
     print("No se ha podido acceder a alguna lección")
     print(e)
