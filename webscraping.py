@@ -2,6 +2,9 @@
 webbrowser únicamente permite acceder
 a un sitio web
 """
+import csv
+from mysql.connector import Error
+import mysql.connector
 import webbrowser as wb
 """
 requests permite llevar a cabo peticiones 
@@ -47,7 +50,73 @@ import time as t
 
 import os
 
-import csv
+
+
+def create_connection(host_name, user_name, user_password, db_name):
+    connection = None
+    try:
+        connection = mysql.connector.connect(
+            host=host_name,
+            user=user_name,
+            passwd=user_password,
+            database=db_name
+        )
+        print("Conexión exitosa a al servidor")
+    except Error as e:
+        print(f"The error '{e}' occurred")
+
+    return connection
+connection = create_connection("127.0.0.1", "root", "root", "p6anki")
+
+def query_execute(conn, query):
+    cursor = connection.cursor()
+    try:
+        cursor.execute(query)
+        connection.commit()
+        return True
+    except Error as e:
+        return e
+
+def query_read(conn,query):
+    cursor = connection.cursor()
+    result = None
+    try:
+        cursor.execute(query)
+        result = cursor.fetchall()
+        return result
+    except Error as e:
+        return e
+
+# Conexión a la base de datos
+
+"""
+La base de datos se crea con:
+
+CREATE TABLE lec_lecciones(
+	lec_id VARCHAR(3) PRIMARY KEY,
+	lec_num TINYINT UNSIGNED
+);
+CREATE TABLE pal_palabra(
+	pal_id VARCHAR(5) PRIMARY KEY,
+	pal_nombre VARCHAR(100),
+	lec_id VARCHAR(3),
+	FOREIGN KEY (lec_id) REFERENCES lec_lecciones(lec_id)
+)
+CREATE TABLE def_definicion(
+	def_id INT PRIMARY KEY AUTO_INCREMENT,
+	pal_id VARCHAR(5),
+	def_contenido TEXT,
+	def_orden INT,
+	FOREIGN KEY (pal_id) REFERENCES pal_palabra(pal_id)
+)
+CREATE TABLE cap_caption(
+	cap_id INT PRIMARY KEY AUTO_INCREMENT,
+	pal_id VARCHAR(5),
+	cap_contenido TEXT,
+	cap_orden INT,
+	FOREIGN KEY (pal_id) REFERENCES pal_palabra(pal_id)
+)
+"""
 
 # Página web inicial
 # try:
