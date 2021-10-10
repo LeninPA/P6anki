@@ -2,6 +2,7 @@
 webbrowser únicamente permite acceder
 a un sitio web
 """
+from termcolor import colored # que permite usar 
 import csv
 from mysql.connector import Error
 import mysql.connector
@@ -211,48 +212,53 @@ try:
                             clase = p['class'][0]
                             print(clase)
                             # print(clase)
+                            # TODO: Lidiar con los errores de las definiciones complejas
                             if clase == 'Definition':
-                                if primeraDef:
-                                    # Obtiene el índice de la palabra
-                                    idx = p.text[0:4]
-                                    txt = p.text[6:]
-                                    # Guardado de datos
-                                    data_p['idx'] = idx
-                                    idx_tmp = idx
-                                    data_sec[idx] = {'def': [txt]}
-                                    data_p['def'] = [txt]
-                                    # Guardado en la base de datos
-                                    pos = txt.find(',')
-                                    if(pos > 0):
-                                        palabra = txt[0:pos]
+                                try:
+                                    if primeraDef:
+                                        # Obtiene el índice de la palabra
+                                        idx = p.text[0:4]
+                                        txt = p.text[6:]
+                                        # Guardado de datos
+                                        data_p['idx'] = idx
+                                        idx_tmp = idx
+                                        data_sec[idx] = {'def': [txt]}
+                                        data_p['def'] = [txt]
+                                        # Guardado en la base de datos
+                                        pos = txt.find(',')
+                                        if(pos > 0):
+                                            palabra = txt[0:pos]
+                                        else:
+                                            palabra = txt
+                                        print("| | | Guardando " + palabra +
+                                            " con identificador " + idx_tmp + " en la BD")
+                                        query_idx = "INSERT IGNORE INTO pal_palabra VALUES ('" + \
+                                            idx_tmp + "', '" + palabra + "', '" + les_numero + "')"
+                                        res = query_execute(connection, query_idx)
+                                        if(res == True):
+                                            print("| | | Se ha guardado "  + palabra + " en la BD con éxito")
+                                        else:
+                                            print("| | | Error al guardar " + palabra + " en la BD, cancelando iteración")
+                                            break
+                                        primeraDef = False
+                                        # Contenido de query
+                                        contenido = txt
                                     else:
-                                        palabra = txt
-                                    print("| | | Guardando " + palabra +
-                                          " con identificador " + idx_tmp + " en la BD")
-                                    query_idx = "INSERT IGNORE INTO pal_palabra VALUES ('" + \
-                                        idx_tmp + "', '" + palabra + "', '" + les_numero + "')"
-                                    res = query_execute(connection, query_idx)
+                                        # print(colored('| | | Esta es la definición ' + str(orden_pal), 'magenta'))
+                                        # print("| | | ", data_p, data_sec)
+                                        data_sec[idx_tmp]['def'].append(p.text)
+                                        contenido = p.text
+                                    print("| | | Guardando nueva definición con orden " + str(orden_pal) + " en la BD")
+                                    query_def = "INSERT IGNORE INTO def_definicion(pal_id,def_contenido,def_orden) VALUES ('" + idx_tmp + "', '" + contenido + "', " + str(orden_pal)+ ")"
+                                    res = query_execute(connection, query_def)
                                     if(res == True):
-                                        print("| | | Se ha guardado "  + palabra + " en la BD con éxito")
+                                        print("| | | Se ha guardado la definición en la BD con éxito")
                                     else:
-                                        print("| | | Error al guardar " + palabra + " en la BD, cancelando iteración")
-                                        break
-                                    primeraDef = False
-                                    # Contenido de query
-                                    contenido = txt
-                                else:
-                                    data_p['def'].append(p.text)
-                                    data_sec[idx_tmp]['def'].append(p.text)
-                                    contenido = p.text
-                                print("| | | Guardando nueva definición con orden " + str(orden_pal) + " en la BD")
-                                query_def = "INSERT IGNORE INTO def_definicion(pal_id,def_contenido,def_orden) VALUES ('" + idx_tmp + "', '" + contenido + "', " + str(orden_pal)+ ")"
-                                res = query_execute(connection, query_def)
-                                if(res == True):
-                                    print("| | | Se ha guardado la definición en la BD con éxito")
-                                else:
-                                    print(
-                                        "| | | Error guardando la definición en la BD")
-                                orden_pal += 1
+                                        print(
+                                            "| | | Error guardando la definición en la BD")
+                                    orden_pal += 1
+                                except Exception as e:
+                                    print("| | | Error con el guardado de definición: ", e)
                             elif clase == 'Image' or clase == 'Gloss':
                                 tag_img = p.img['src'].lstrip('/')
                                 print(
@@ -296,18 +302,21 @@ try:
                                     print(
                                         "| | | Error guardando la leyenda en la BD")
                                 orden_cap += 1
-
                         except Exception as e:
-                            print("Error al procesar los contenidos de la lección")
+                            print(
+                                "Error al procesar los contenidos de la lección", les_numero)
                             print(e)
                     print("| | Datos obtenidos:\n| | ", data_sec)
                     # t.sleep(2)
                     # break
             except Exception as e:
-                print("| No se ha podido acceder a los contenidos de la lección", les.text)
+                print(
+                    "| No se ha podido acceder a los contenidos de la lección", les_numero)
                 print(e)
-        t.sleep(3)
         # break # Eliminar una vez comprobado que esto funciona
+        # if contador_lecciones >= 49:
+            # break
+        t.sleep(2)
 except Exception as e:
     print("No se ha podido acceder a alguna lección")
     print(e)
