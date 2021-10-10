@@ -143,7 +143,11 @@ data = {}
 try:
     lessons = html.find_all('a', class_ = "Section")
     # Análisis de lecciones
+    contador_lecciones = 0
     for les in lessons:
+        contador_lecciones += 1
+        # if(contador_lecciones < (8*9 +1)):
+        #     continue
         data_l = {}
         enlace = path + les['href']
         exito = False
@@ -157,6 +161,8 @@ try:
         except Exception as e:
             print("Surgió un error durante el procesamiento de la lección" + les.text)
             print(e)
+        # if(contador_lecciones >= 8*9 +1):
+        #     break
         if(exito):
             # Acceso exitoso
             # Análisis de secciones
@@ -217,8 +223,12 @@ try:
                                 try:
                                     if primeraDef:
                                         # Obtiene el índice de la palabra
-                                        idx = p.text[0:4]
-                                        txt = p.text[6:]
+                                        if(contador_lecciones < 73):
+                                            idx = p.text[0:4]
+                                            txt = p.text[6:]
+                                        else:
+                                            idx = p.text[0:5]
+                                            txt = p.text[7:]
                                         # Guardado de datos
                                         data_p['idx'] = idx
                                         idx_tmp = idx
@@ -283,12 +293,13 @@ try:
                                     print(e)
                             elif clase == 'Caption':
                                 txt = p.text
+                                contenido = p.text
                                 if primeraCap:
-                                    data_p['cap'] = [txt]
+                                    #data_p['cap'] = [txt]
                                     data_sec[idx_tmp]['cap'] = [txt]
                                     primeraDef = False
                                 else:
-                                    data_p['cap'].append(txt)
+                                    #data_p['cap'].append(txt)
                                     data_sec[idx_tmp]['cap'].append(txt)
                                 print("| | | Guardando nueva leyenda con orden " + str(orden_cap) + " en la BD")
                                 query_def = "INSERT IGNORE INTO cap_caption(pal_id,cap_contenido,cap_orden) VALUES ('" + \
