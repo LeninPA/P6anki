@@ -6,6 +6,10 @@ import mysql.connector
 
 import os
 
+import genanki
+
+import random
+
 def create_connection(host_name, user_name, user_password, db_name):
     connection = None
     try:
@@ -58,6 +62,10 @@ lecs = query_read(connection, query_lecs)
 contador_lec = 0
 lec_actual = None
 for lec in lecs:
+    query_anki_lecciones = "UPDATE lec_lecciones SET lec_anki='" + \
+        str(random.randrange(1 << 30, 1 << 31)) + "' WHERE lec_id='" + lec[0] + "'"
+    print(query_anki_lecciones)
+    query_execute(connection, query_anki_lecciones)
     if lec[1] != contador_lec:
         contador_lec = lec[1]
         print("Lección " + str(lec[1]))
@@ -68,8 +76,11 @@ for lec in lecs:
     pals = query_read(connection, query_pal)
 
     for pal in pals:
+        query_anki_palabra = "UPDATE pal_palabra SET pal_anki=" + \
+            str(random.randrange(1 << 30, 1 << 31)) + " WHERE pal_id='" + str(pal[0]) + "'"
+        query_execute(connection, query_anki_palabra)
         print("| | Palabra " + str(pal[0]) + ": " + pal[1])
-
+        print("| | | " + query_anki_palabra)
         query_defs = "SELECT * FROM def_definicion WHERE pal_id='" + \
             pal[0] + "' ORDER BY def_orden"
         defs = query_read(connection, query_defs)
@@ -103,3 +114,18 @@ for lec in lecs:
             if(os.path.exists(path + 'Image.png')):
                 print("| | | | " + path + 'Image.png')
 
+
+# print(random.randrange(1 << 30, 1 << 31))
+
+# Este código se ejecuta una sola vez
+# for i in range(0,13):
+#     query_mazo = "INSERT INTO maz_mazo VALUES (" + str(i) + ", " + str(
+#         random.randrange(1 << 30, 1 << 31)) + ")"
+#     print(query_mazo)
+#     query_execute(connection,query_mazo)
+# Nota: El registro 13 es el deck principal
+
+# TODO: Actualizar los ids de cada lección y de cada nota
+
+# for i in range(0,97):
+    # query_lecciones = "UPDATE lec_lecciones SET lec_anki='" + str(random.randrange(1 << 30, 1 << 31)) + "'"
