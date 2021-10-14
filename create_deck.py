@@ -11,6 +11,8 @@ import genanki
 
 import random
 
+import base64
+
 
 def create_connection(host_name, user_name, user_password, db_name):
     connection = None
@@ -77,7 +79,7 @@ nombre_deck_lec = None
 estilo = """
 .card {
  font-family: tahoma;
- font-size: 40px;
+ font-size: 30px;
  text-align: center;
  color: #4a4a4a;
  background-color: white;
@@ -173,10 +175,6 @@ for lec in lecs:
         nombre_deck_root + "::" + nombre_deck_lec + "::" + lec[0]
     )
     print("| Sublección " + lec[0])
-    my_note = genanki.Note(
-        model=my_model,
-        fields=['Capital of Argentina', 'Buenos Aires'])
-    mazo_sublec.add_note(my_note)
     mazos_sublec[contador_lec - 1].append(mazo_sublec)
 
     query_pal = "SELECT * FROM pal_palabra WHERE lec_id='" + lec[0] + "'"
@@ -220,6 +218,7 @@ for lec in lecs:
             print("| | | Imagen ")
             path = './' + lec_actual[:-1] + '/' + \
                 lec_actual[-1] + '/' + pal[0] + '_'
+            path_aux = pal[0] + '_'
             if(os.path.exists(path + 'Gloss.png')):
                 print("| | | | " + path + 'Gloss.png')
                 datos_pal['gloss'] = path + 'Gloss.png'
@@ -244,12 +243,12 @@ for lec in lecs:
             leyendas_pal_anki = ''
         if(pal_con_imagen):
             if(pal_imagen):
-                path_imagen = '<img src="' + path + 'Image.png">' 
+                path_imagen = '<img src="' + path_aux + 'Image.png">' 
                 path_media.append(path + 'Image.png')
             else:
                 path_imagen = ''
             if(pal_gloss):
-                path_gloss = '<img src="' + path + 'Gloss.png">' 
+                path_gloss = '<img src="' + path_aux + 'Gloss.png">'
                 path_media.append(path + 'Gloss.png')
             else:
                 path_gloss = ''
